@@ -21,7 +21,7 @@ spark = SparkSession.builder.getOrCreate()
 
 for i in sample_id:
 	#filename = input_path + i + '/' + i + '.hard-filtered.vcf.bgz'
-        filename = input_path + '/' + i + '.hard-filtered.vcf.bgz'
+	filename = input_path + '/' + i
 	#if "additional_698_related" in filename:
 	#	continue
 	#else:
