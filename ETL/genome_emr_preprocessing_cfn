@@ -312,7 +312,7 @@ Parameters:
 
   EmrTaskInstanceCount:
     Default: 1
-    Description: "Must be 1 or greater. Number of tesk nodes to be launched for EMR, leave default value to launch EMR with pre-configured setup"
+    Description: "Must be 1 or greater. Number of task nodes to be launched for EMR, leave default value to launch EMR with pre-configured setup"
     MinValue: 1 # Cannot be 0.
     Type: "Number"
 
@@ -373,15 +373,15 @@ Metadata:
       SamplesPerCluster:
         default: "Number of Samples per EMR cluster"
       HailScriptPath:
-        default: "S3 Path to pyspark script"
+        default: "Pyspark script S3 path"
       OutputS3Path:
-        default: "Output S3 path for processed samples"
+        default: "Output S3 path for pre-processed samples"
       HailBucketName:
-        default: "S3 Bucket to store logs"
+        default: "EMR Logs S3 Bucket name"
       EMRClusterName:
-        default: "EMR Cluster name with Hail 0.2 installed to pre-process samples"
+        default: "EMR Cluster name with Hail 0.2 installed"
       EMRConfigs:
-        default: "S3 Bucket path containing custom configurations for EMR cluster"
+        default: "EMR Custom Configurations S3 Bucket path"
       EmrMasterInstanceSize:
         default: "EMR Master Instance type"
       EmrCoreInstanceSize:
@@ -481,21 +481,10 @@ Resources:
             - '   service_role = os.environ["EMR_SERVICE"]'
             - '   emr_ec2 = os.environ["EMR_EC2_ROLE"]'
             - '   autoscaling_role = os.environ["EMR_AUTOSCALING_ROLE"]'
-            - '   length = len(emr_config.split("/"))'
-            - '   bucket = emr_config.split("/")[2]'
-            - '   num = 3'
-            - '   key = ""'
-            - '   while num < length-1:'
-            - "       key = key + emr_config.split('/')[num] + '/'"
-            - "       num += 1"
-            - '   key = key + emr_config.split("/")[length-1]'
-            - '   inplength = len(input_s3.split("/"))'
-            - '   inpbucket = input_s3.split("/")[2]'
-            - '   inpnum = 3'
-            - '   inpkey = ""'
-            - '   while inpnum < inplength-1:'
-            - "       inpkey = inpkey + input_s3.split('/')[inpnum] + '/'"
-            - "       inpnum += 1"
+            - '   bucket = emr_config.replace("s3://","",1).split("/",1)[0]'
+            - '   key = emr_config.replace("s3://","",1).split("/",1)[1]'
+            - '   inpbucket = input_s3.replace("s3://","",1).split("/",1)[0]'
+            - '   inpkey = input_s3.replace("s3://","",1).split("/",1)[1].rsplit("/",1)[0]'
             - '   outputData = {}'
             - '   try:'
             - '      response = s3.get_object(Bucket = bucket, Key = key)'
@@ -585,14 +574,8 @@ Resources:
             - '   service_role = os.environ["EMR_SERVICE"]'
             - '   emr_ec2 = os.environ["EMR_EC2_ROLE"]'
             - '   autoscaling_role = os.environ["EMR_AUTOSCALING_ROLE"]'
-            - '   length = len(emr_config.split("/"))'
-            - '   bucket = emr_config.split("/")[2]'
-            - '   num = 3'
-            - '   key = ""'
-            - '   while num < length-1:'
-            - "       key = key + emr_config.split('/')[num] + '/'"
-            - "       num += 1"
-            - '   key = key + emr_config.split("/")[length-1]'
+            - '   bucket = emr_config.replace("s3://","",1).split("/",1)[0]'
+            - '   key = emr_config.replace("s3://","",1).split("/",1)[1]'
             - '   try:'
             - '       response = s3.get_object(Bucket = bucket, Key = key)'
             - '       content = response["Body"]'
@@ -604,7 +587,7 @@ Resources:
             - "       p_base_file_name = os.path.basename(p_full_path)"
             - "       print(p_base_file_name)"
             - "       prefix = inpkey.split('/')[0]"
-            - "       input_s3 = 's3://' + 'inpbucket' + '/' + prefix + '/'"
+            - "       input_s3 = 's3://' + inpbucket + '/' + prefix + '/'"
             - "       maxkey=10"
             - "       if not key.endswith('/'):"
             - "          pages = paginator.paginate(Bucket=inpbucket,Prefix=prefix,MaxKeys=maxkey)"
@@ -715,7 +698,7 @@ Resources:
       Path: "/"
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
-      RoleName: "emr-cluster-EMRHail9"
+      RoleName: "emr-cluster-EMRHail11"
 
   emrec2HailEMR:
     Type: "AWS::IAM::Role"
@@ -747,7 +730,7 @@ Resources:
               - Effect: "Allow"
                 Action: "cloudformation:DescribeStacks"
                 Resource: !Ref "AWS::StackId"
-      RoleName: 'emr-ec2-EMRHail9'
+      RoleName: 'emr-ec2-EMRHail11'
 
   emrautoscalingHailEMR:
     Type: 'AWS::IAM::Role'
@@ -765,7 +748,7 @@ Resources:
       Path: /
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforAutoScalingRole'
-      RoleName: 'emr-autoscaling-EMRHail9'
+      RoleName: 'emr-autoscaling-EMRHail11'
 
   instanceProfileEmrEc2:
     Type: "AWS::IAM::InstanceProfile"
