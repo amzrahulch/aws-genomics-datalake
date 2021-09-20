@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Workshop: How to build a Genomics Datalake on My AWS Workshop</title>
+    <link>/en/</link>
+    <description>Recent content in Workshop: How to build a Genomics Datalake on My AWS Workshop</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language><atom:link href="/en/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Manage new samples</title>
+      <link>/en/analysis/newsamples.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/en/analysis/newsamples.html</guid>
+      <description>For clinvar data, the dataset is refreshed whenever the source data is updated. For variants data, sequenced samples are usually not updated, but new samples will be added over time. How to integrate the new samples to our dataset so our analysis can get up-to-date result?
+Once new vcf files are uploaded to S3, we can run the hail job to convert them to parquet. then add them to various optimized data copies.</description>
+    </item>
+    
+    <item>
+      <title>Querying 1000 Genomes data</title>
+      <link>/en/analysis/thousandgenomesnew.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/en/analysis/thousandgenomesnew.html</guid>
+      <description>We will use the parquet/ORC transformed variant data from the 3502 DRAGEN-reanalyzed 1000 Genomes dataset available in 3 different schemas at s3://aws-roda-hcls-datalake/thousandgenomes_dragen/:
+var_partby_samples - Dataset partitioned by sample ID
+var_partby_chrom - Dataset partitioned by chromosome and bucketed by samples
+var_nested - Nested schema consisting of variant sites with sample IDs and genotypes that contain the variant
+We use the transformed annotations from ClinVar that are available at https://registry.opendata.aws/clinvar/ and the transformed population allele frequency data from gnomAD at to demonstrate how to make queries that use the raw variant data with annotations.</description>
+    </item>
+    
+    <item>
+      <title>Querying the transformed VCF files from the previous EMR processing step</title>
+      <link>/en/analysis/queryemrprocessed.html</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>/en/analysis/queryemrprocessed.html</guid>
+      <description>Let&amp;rsquo;s check if the VCF files have been transformed. You can examine the S3 output location if parquet files are generated:
+The data is ready to be queried by Athena. We just need to create table schema for it. you can use Glue crawler to detect schema for you.
+CREATE EXTERNAL TABLE `var_part_by_sample`( `variant_id` string, `chrom` string, `pos` int, `alleles` array&amp;lt;string&amp;gt;, `rsid` string, `qual` double, `filters` array&amp;lt;string&amp;gt;, `info.ac` array&amp;lt;int&amp;gt;, `info.af` array&amp;lt;double&amp;gt;, `info.</description>
+    </item>
+    
+  </channel>
+</rss>
