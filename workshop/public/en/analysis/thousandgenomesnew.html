@@ -196,7 +196,26 @@
     
       <li data-nav-id="/en/analysis/newsamples.html" title="Manage new samples" class="dd-item ">
         <a href="../../en/analysis/newsamples.html">
-        Manage new samples
+        <b>3.3 </b>Manage new samples
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+ 
+  
+    
+      <li data-nav-id="/en/analysis/queryemrprocessed.html" title="Query your transformed VCF files" class="dd-item ">
+        <a href="../../en/analysis/queryemrprocessed.html">
+        <b>3.2 </b>Query your transformed VCF files
         
         </a>
     </li>
@@ -216,25 +235,6 @@
       <li data-nav-id="/en/analysis/thousandgenomesnew.html" title="Querying 1000 Genomes data" class="dd-item active">
         <a href="../../en/analysis/thousandgenomesnew.html">
         <b>3.1 </b>Querying 1000 Genomes data
-        
-        </a>
-    </li>
-     
-  
- 
-
-            
-          
-            
-            
-
-
- 
-  
-    
-      <li data-nav-id="/en/analysis/queryemrprocessed.html" title="Querying the transformed VCF files from the previous EMR processing step" class="dd-item ">
-        <a href="../../en/analysis/queryemrprocessed.html">
-        <b>3.2 </b>Querying the transformed VCF files from the previous EMR processing step
         
         </a>
     </li>
@@ -366,79 +366,24 @@
           
 
 <p>We will use the parquet/ORC transformed variant data from the 3502 DRAGEN-reanalyzed 1000 Genomes dataset available in 3 different schemas at s3://aws-roda-hcls-datalake/thousandgenomes_dragen/:</p>
+<ol>
+<li>
 <p>var_partby_samples - Dataset partitioned by sample ID</p>
+</li>
+<li>
 <p>var_partby_chrom - Dataset partitioned by chromosome and bucketed by samples</p>
+</li>
+<li>
 <p>var_nested - Nested schema consisting of variant sites with sample IDs and genotypes that contain the variant</p>
-<p>We use the transformed annotations from ClinVar that are available at <a href="https://registry.opendata.aws/clinvar/" target="_blank" rel="noopener noreferrer">https://registry.opendata.aws/clinvar/</a> and the transformed population allele frequency data from gnomAD at to demonstrate how to make queries that use the raw variant data with annotations.</p>
-<p>Please use the CloudFormation templates for 1000 Genomes DRAGEN, ClinVar and gnomAD available at <a href="https://github.com/aws-samples/data-lake-as-code/tree/roda" target="_blank" rel="noopener noreferrer">https://github.com/aws-samples/data-lake-as-code/tree/roda</a> to add these tables to your Glue Data Catalog.</p>
-<p>We use Clinvar as Annotation dataset. The dataset is publically available in RODA, you can create an external table in Athena (or use the cloudformation template from above) and start accessing it immediately.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#75715e">-- Clinvar dataset
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">EXTERNAL</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#f92672">`</span>variant_summary<span style="color:#f92672">`</span>(
-  <span style="color:#f92672">`</span>alleleid<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span><span style="color:#66d9ef">type</span><span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>name<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>geneid<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>genesymbol<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>hgnc_id<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>clinicalsignificance<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>clinsigsimple<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>lastevaluated<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>rcvaccession<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>phenotypeids<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>phenotypelist<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>origin<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>originsimple<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>assembly<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>chromosomeaccession<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>chromosome<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span><span style="color:#66d9ef">start</span><span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>stop<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>referenceallele<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>alternateallele<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>cytogenetic<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>reviewstatus<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>numbersubmitters<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>guidelines<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>testedingtr<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>otherids<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>submittercategories<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>variationid<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>positionvcf<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>referenceallelevcf<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>alternateallelevcf<span style="color:#f92672">`</span> string, 
-  <span style="color:#f92672">`</span>rsid_dbsnp<span style="color:#f92672">`</span> bigint, 
-  <span style="color:#f92672">`</span>nsv_esv_dbvar<span style="color:#f92672">`</span> string)
-<span style="color:#66d9ef">ROW</span> FORMAT SERDE <span style="color:#e6db74">&#39;org.apache.hadoop.hive.ql.io.parquet.serde.ParquetHiveSerDe&#39;</span> 
-STORED <span style="color:#66d9ef">AS</span> INPUTFORMAT <span style="color:#e6db74">&#39;org.apache.hadoop.hive.ql.io.parquet.MapredParquetInputFormat&#39;</span> 
-OUTPUTFORMAT <span style="color:#e6db74">&#39;org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat&#39;</span>
-<span style="color:#66d9ef">LOCATION</span><span style="color:#e6db74">&#39;s3://aws-roda-hcls-datalake/clinvar_summary_variants/variant_summary/&#39;</span>
-;
-</code></pre></div><p>For this workshop, we have the dataset converted already, you can just create an external table point to it.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL">
-<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">EXTERNAL</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#f92672">`</span>var_nested<span style="color:#f92672">`</span>(
-  <span style="color:#f92672">`</span>variant_id<span style="color:#f92672">`</span> string <span style="color:#66d9ef">COMMENT</span> <span style="color:#e6db74">&#39;&#39;</span>, 
-  <span style="color:#f92672">`</span>pos<span style="color:#f92672">`</span> int <span style="color:#66d9ef">COMMENT</span> <span style="color:#e6db74">&#39;&#39;</span>, 
-  <span style="color:#f92672">`</span><span style="color:#66d9ef">ref</span><span style="color:#f92672">`</span> string <span style="color:#66d9ef">COMMENT</span> <span style="color:#e6db74">&#39;&#39;</span>, 
-  <span style="color:#f92672">`</span>alt<span style="color:#f92672">`</span> string <span style="color:#66d9ef">COMMENT</span> <span style="color:#e6db74">&#39;&#39;</span>, 
-  <span style="color:#f92672">`</span>samples<span style="color:#f92672">`</span> array<span style="color:#f92672">&lt;</span>struct<span style="color:#f92672">&lt;</span>id:string,gts:array<span style="color:#f92672">&lt;</span>int<span style="color:#f92672">&gt;&gt;&gt;</span> <span style="color:#66d9ef">COMMENT</span> <span style="color:#e6db74">&#39;&#39;</span>)
-PARTITIONED <span style="color:#66d9ef">BY</span> ( 
-  <span style="color:#f92672">`</span>chrom<span style="color:#f92672">`</span> string <span style="color:#66d9ef">COMMENT</span> <span style="color:#e6db74">&#39;&#39;</span>)
-<span style="color:#66d9ef">ROW</span> FORMAT SERDE 
-  <span style="color:#e6db74">&#39;org.apache.hadoop.hive.ql.io.orc.OrcSerde&#39;</span> 
-STORED <span style="color:#66d9ef">AS</span> INPUTFORMAT 
-  <span style="color:#e6db74">&#39;org.apache.hadoop.hive.ql.io.orc.OrcInputFormat&#39;</span> 
-OUTPUTFORMAT 
-  <span style="color:#e6db74">&#39;org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat&#39;</span>
-<span style="color:#66d9ef">LOCATION</span>
-  <span style="color:#e6db74">&#39;s3://aws-roda-hcls-datalake/thousandgenomes_dragen/var_nested/&#39;</span>
-;
-
-<span style="color:#75715e">-- Discover partitions
-</span><span style="color:#75715e"></span>MSCK REPAIR <span style="color:#66d9ef">TABLE</span> var_nested;
-
-</code></pre></div><p>For the end user who is a researcher performing analyses at a cohort level, the typical types of queries are to identify samples that meet a specific criteria. For example, samples that have variants in a specific gene or region, samples that have a pathogenic or likely pathogenic variant in a specific gene, samples that have rare (minor allele frequency &lt; 0.01) variants in a specific region. The typical mode of operation would be to interactively query using progressively narrower filters to identify a cohort of an appropriate size, and then fetch all the details about the variants and samples themselves. Here is an example set of queries where a researcher is looking for samples that have VUS (variants of uncertain significance) variants in the BRCA1 gene, which is present on chromosome 17 between the loci, 43,044,295 and 43,125,364. We will first query to see how many samples have variants in the BRCA1 gene:</p>
+</li>
+</ol>
+<p><img src="../../images/dataModel.png" alt=""></p>
+<p>We use the transformed annotations from ClinVar that are available at <a href="https://registry.opendata.aws/clinvar/" target="_blank" rel="noopener noreferrer">https://registry.opendata.aws/clinvar/</a> to demonstrate how to make queries that use the raw variant data with annotations.</p>
+<p>You can use the CloudFormation templates for 1000 Genomes DRAGEN, ClinVar available at <a href="https://tiny.amazon.com/la8hhrg7/consawsamazclouhome" target="_blank" rel="noopener noreferrer">https://tiny.amazon.com/la8hhrg7/consawsamazclouhome</a> and <a href="https://tiny.amazon.com/ugl52tx8/consawsamazclouhome" target="_blank" rel="noopener noreferrer">https://tiny.amazon.com/ugl52tx8/consawsamazclouhome</a> to add these tables to your Glue Data Catalog.</p>
+<p>Once the template deploys, go the AWS Glue Crawler Console check the box next to the thousandgenomes_dragen_awsroda_crawler and click &lsquo;Run crawler&rsquo;. Once it finishes (1-3 minutes) you can query all tables in these datasets.</p>
+<p>For the end user who is a researcher performing analyses at a cohort level, the typical types of queries are to identify samples that meet a specific criteria. For example, samples that have variants in a specific gene or region, samples that have a pathogenic or likely pathogenic variant in a specific gene, samples that have rare (minor allele frequency &lt; 0.01) variants in a specific region. The typical mode of operation would be to interactively query using progressively narrower filters to identify a cohort of an appropriate size, and then fetch all the details about the variants and samples themselves. Here is an example set of queries where a researcher is looking for samples that have VUS (variants of uncertain significance) variants in the BRCA1 gene, which is present on chromosome 17 between the loci, 43,044,295 and 43,125,364. We will first query to see how many samples have variants in the BRCA1 gene:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#66d9ef">select</span> <span style="color:#66d9ef">count</span>(<span style="color:#66d9ef">DISTINCT</span>(sample.id)) <span style="color:#66d9ef">from</span> (
-    <span style="color:#66d9ef">select</span> samples <span style="color:#66d9ef">from</span> var_nested 
+    <span style="color:#66d9ef">select</span> samples <span style="color:#66d9ef">from</span> thousandgenomes_dragen_dl_awsroda.var_nested 
     <span style="color:#66d9ef">where</span> chrom<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;chr17&#39;</span> 
     <span style="color:#66d9ef">and</span> pos <span style="color:#66d9ef">between</span> <span style="color:#ae81ff">43044295</span> <span style="color:#66d9ef">and</span> <span style="color:#ae81ff">43125364</span>
   ) <span style="color:#66d9ef">as</span> f, 
@@ -447,7 +392,7 @@ OUTPUTFORMAT
 </code></pre></div><p>This query returns 3202, which means all samples meet the criteria.
 We need to define a narrower filter to identify samples of interest. This will involve using the clinical significance annotations from ClinVar variant summary table. First, in order to make the queries simpler, we can define a “view” that creates a “variant_id”, consisting of the chromosome, position, ref and alt fields (can be used to join with the variant table), and includes only the fields of interest to us.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#75715e">-- View to cleanup and build variant_id that will be used to join with variant data.
-</span><span style="color:#75715e"></span><span style="color:#66d9ef">create</span> <span style="color:#66d9ef">or</span> <span style="color:#66d9ef">replace</span> <span style="color:#66d9ef">view</span> clinvar <span style="color:#66d9ef">as</span>
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">create</span> <span style="color:#66d9ef">or</span> <span style="color:#66d9ef">replace</span> <span style="color:#66d9ef">view</span> <span style="color:#e6db74">&#34;clinvar_summary_variants_dl-awsroda&#34;</span>.clinvar <span style="color:#66d9ef">as</span>
 <span style="color:#66d9ef">select</span> concat(<span style="color:#e6db74">&#39;chr&#39;</span>, chromosome, <span style="color:#e6db74">&#39;:&#39;</span>, referenceallelevcf, <span style="color:#e6db74">&#39;:&#39;</span>, alternateallelevcf, <span style="color:#e6db74">&#39;:&#39;</span>, <span style="color:#66d9ef">cast</span>(positionvcf <span style="color:#66d9ef">as</span> varchar)) <span style="color:#66d9ef">as</span> variant_id
        , chromosome <span style="color:#66d9ef">as</span> chrom
        , positionvcf <span style="color:#66d9ef">as</span> pos
@@ -456,16 +401,17 @@ We need to define a narrower filter to identify samples of interest. This will i
        , genesymbol <span style="color:#66d9ef">as</span> genename 
        , clinicalsignificance <span style="color:#66d9ef">as</span> clinvar_clnsig
        , split(phenotypeids, <span style="color:#e6db74">&#39;,&#39;</span>) <span style="color:#66d9ef">as</span> phenotypeids
-<span style="color:#66d9ef">from</span> variant_summary <span style="color:#66d9ef">where</span> assembly <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;GRCh38&#39;</span>
+       , numbersubmitters <span style="color:#66d9ef">as</span> num_submitters
+<span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#34;clinvar_summary_variants_dl-awsroda&#34;</span>.variant_summary <span style="color:#66d9ef">where</span> assembly <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;GRCh38&#39;</span>
 <span style="color:#66d9ef">and</span> referenceallelevcf <span style="color:#f92672">&lt;&gt;</span> <span style="color:#e6db74">&#39;na&#39;</span> <span style="color:#66d9ef">and</span> alternateallelevcf <span style="color:#f92672">&lt;&gt;</span> <span style="color:#e6db74">&#39;na&#39;</span>
 ;
 
 </code></pre></div><p>We can then use this “clinvar” view in subsequent queries, such as to further filter the original query by searching for only those samples that have variants of Uncertain Significance.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#66d9ef">select</span> <span style="color:#66d9ef">count</span>(<span style="color:#66d9ef">DISTINCT</span>(sample.id (http:<span style="color:#f92672">//</span>sample.id<span style="color:#f92672">/</span>))) <span style="color:#66d9ef">from</span> (
-  <span style="color:#66d9ef">select</span> samples <span style="color:#66d9ef">from</span> var_nested <span style="color:#66d9ef">as</span> v 
-  <span style="color:#66d9ef">join</span> clinvar a
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#66d9ef">select</span> <span style="color:#66d9ef">count</span>(<span style="color:#66d9ef">DISTINCT</span>(sample.id)) <span style="color:#66d9ef">from</span> (
+  <span style="color:#66d9ef">select</span> samples <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#34;thousandgenomes_dragen_dl_awsroda&#34;</span>.var_nested <span style="color:#66d9ef">as</span> v 
+  <span style="color:#66d9ef">join</span> <span style="color:#e6db74">&#34;clinvar_summary_variants_dl-awsroda&#34;</span>.clinvar a
   <span style="color:#66d9ef">on</span> v.variant_id <span style="color:#f92672">=</span> a.variant_id
-  <span style="color:#66d9ef">where</span> <span style="color:#f92672">*</span>a<span style="color:#f92672">**</span>.clinvar_clnsig <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Uncertain significance&#39;</span><span style="color:#f92672">*</span> 
+  <span style="color:#66d9ef">where</span> a.clinvar_clnsig <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Uncertain significance&#39;</span>
     <span style="color:#66d9ef">and</span> v.chrom<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;chr17&#39;</span> 
     <span style="color:#66d9ef">and</span> v.pos <span style="color:#66d9ef">between</span> <span style="color:#ae81ff">43044295</span> <span style="color:#66d9ef">and</span> <span style="color:#ae81ff">43125364</span>
   ) <span style="color:#66d9ef">as</span> f,
@@ -473,17 +419,18 @@ We need to define a narrower filter to identify samples of interest. This will i
 
 </code></pre></div><p>This query returns a result of 1550 samples, which has reduced our sample set by approximately 50%. If we want further confidence that these are indeed Variants of Unknown Significance, we can further filter down to only those samples that have variants with more than one submitter.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#66d9ef">select</span> <span style="color:#66d9ef">count</span>(<span style="color:#66d9ef">DISTINCT</span>(sample.id)) <span style="color:#66d9ef">from</span> (
-  <span style="color:#66d9ef">select</span> samples <span style="color:#66d9ef">from</span> var_nested <span style="color:#66d9ef">as</span> v 
-  <span style="color:#66d9ef">join</span> clinvar a
+  <span style="color:#66d9ef">select</span> samples <span style="color:#66d9ef">from</span> <span style="color:#e6db74">&#34;thousandgenomes_dragen_dl_awsroda&#34;</span>.var_nested <span style="color:#66d9ef">as</span> v 
+  <span style="color:#66d9ef">join</span> <span style="color:#e6db74">&#34;clinvar_summary_variants_dl-awsroda&#34;</span>.clinvar a
   <span style="color:#66d9ef">on</span> v.variant_id <span style="color:#f92672">=</span> a.variant_id
   <span style="color:#66d9ef">where</span> a.clinvar_clnsig <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Uncertain significance&#39;</span> 
     <span style="color:#66d9ef">and</span> v.chrom<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;chr17&#39;</span> 
     <span style="color:#66d9ef">and</span> v.pos <span style="color:#66d9ef">between</span> <span style="color:#ae81ff">43044295</span> <span style="color:#66d9ef">and</span> <span style="color:#ae81ff">43125364</span>
-    <span style="color:#f92672">*</span><span style="color:#66d9ef">and</span> a.num_submitters <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">*</span>
+    <span style="color:#66d9ef">and</span> a.num_submitters <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span>
   ) <span style="color:#66d9ef">as</span> f,
 <span style="color:#66d9ef">unnest</span>(f.samples) <span style="color:#66d9ef">as</span> s(sample);
 
-</code></pre></div><p>This query returns a result set of 41 samples, which can then be investigated further. For more example queries and scenarios, we have created a <a href="https://github.com/amzrahulch/genomicsDataLakePoC/blob/main/1000Genomes.ipynb" target="_blank" rel="noopener noreferrer">sample notebook</a> here you can try.</p>
+</code></pre></div><p>This query returns a result set of 41 samples, which can then be investigated further.</p>
+<p>For more example queries and scenarios, we have created a <a href="https://github.com/aws-samples/aws-genomics-datalake/blob/main/1000Genomes.ipynb" target="_blank" rel="noopener noreferrer">sample notebook</a> that you can try.</p>
 
 
 <footer class=" footline" >
@@ -606,7 +553,6 @@ We need to define a narrower filter to identify samples of interest. This will i
             
                 
                     
-                    
                 
                 
 
@@ -623,8 +569,6 @@ We need to define a narrower filter to identify samples of interest. This will i
             
                 
                     
-                        
-                        
                     
                 
                 
@@ -649,10 +593,10 @@ We need to define a narrower filter to identify samples of interest. This will i
 	 
 	 
 		
-			<a class="nav nav-prev" href="../../en/analysis/newsamples.html" title="Manage new samples"> <i class="fa fa-chevron-left"></i></a>
+			<a class="nav nav-prev" href="../../en/analysis/queryemrprocessed.html" title="Query your transformed VCF files"> <i class="fa fa-chevron-left"></i></a>
 		
 		
-			<a class="nav nav-next" href="../../en/analysis/queryemrprocessed.html" title="Querying the transformed VCF files from the previous EMR processing step" style="margin-right: 0px;"><i class="fa fa-chevron-right"></i></a>
+			<a class="nav nav-next" href="../../en/basics.html" title="Architecture" style="margin-right: 0px;"><i class="fa fa-chevron-right"></i></a>
 		
 	
     </div>

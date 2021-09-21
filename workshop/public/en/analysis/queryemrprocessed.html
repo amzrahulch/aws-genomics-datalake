@@ -14,7 +14,7 @@
   <link rel="shortcut icon" href="https://a0.awsstatic.com/libra-css/images/site/fav/favicon.ico" type="image/ico" />
 <link rel="icon" href="https://a0.awsstatic.com/libra-css/images/site/fav/favicon.ico" type="image/ico" />
 
-  <title>Querying the transformed VCF files from the previous EMR processing step :: My AWS Workshop</title>
+  <title>Query your transformed VCF files :: My AWS Workshop</title>
 
   
   <link href="../../css/nucleus.css" rel="stylesheet">
@@ -196,7 +196,26 @@
     
       <li data-nav-id="/en/analysis/newsamples.html" title="Manage new samples" class="dd-item ">
         <a href="../../en/analysis/newsamples.html">
-        Manage new samples
+        <b>3.3 </b>Manage new samples
+        
+        </a>
+    </li>
+     
+  
+ 
+
+            
+          
+            
+            
+
+
+ 
+  
+    
+      <li data-nav-id="/en/analysis/queryemrprocessed.html" title="Query your transformed VCF files" class="dd-item active">
+        <a href="../../en/analysis/queryemrprocessed.html">
+        <b>3.2 </b>Query your transformed VCF files
         
         </a>
     </li>
@@ -216,25 +235,6 @@
       <li data-nav-id="/en/analysis/thousandgenomesnew.html" title="Querying 1000 Genomes data" class="dd-item ">
         <a href="../../en/analysis/thousandgenomesnew.html">
         <b>3.1 </b>Querying 1000 Genomes data
-        
-        </a>
-    </li>
-     
-  
- 
-
-            
-          
-            
-            
-
-
- 
-  
-    
-      <li data-nav-id="/en/analysis/queryemrprocessed.html" title="Querying the transformed VCF files from the previous EMR processing step" class="dd-item active">
-        <a href="../../en/analysis/queryemrprocessed.html">
-        <b>3.2 </b>Querying the transformed VCF files from the previous EMR processing step
         
         </a>
     </li>
@@ -343,7 +343,7 @@
           
           
           
-          <a href='../../en/'>Workshop: How to build a Genomics Datalake</a> > <a href='../../en/analysis.html'>Analysis via Athena</a> > Querying the transformed VCF files from the previous EMR processing step
+          <a href='../../en/'>Workshop: How to build a Genomics Datalake</a> > <a href='../../en/analysis.html'>Analysis via Athena</a> > Query your transformed VCF files
           
           
           
@@ -361,12 +361,13 @@
       <div id="chapter">
         
         <div id="body-inner">
-          <h1>Querying the transformed VCF files from the previous EMR processing step</h1>
+          <h1>Query your transformed VCF files</h1>
           
           
 
 <p>Let&rsquo;s check if the VCF files have been transformed. You can examine the S3 output location if parquet files are generated:</p>
-<p>The data is ready to be queried by Athena. We just need to create table schema for it. you can use Glue crawler to detect schema for you.</p>
+<p><img src="../../images/parquet_output.png" alt=""></p>
+<p>The data is ready to be queried by Athena. We just need to create table schema for it. You can use Glue crawler to detect schema for you.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">EXTERNAL</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#f92672">`</span>var_part_by_sample<span style="color:#f92672">`</span>(
   <span style="color:#f92672">`</span>variant_id<span style="color:#f92672">`</span> string, 
   <span style="color:#f92672">`</span>chrom<span style="color:#f92672">`</span> string, 
@@ -417,14 +418,17 @@ STORED <span style="color:#66d9ef">AS</span> INPUTFORMAT
 OUTPUTFORMAT 
   <span style="color:#e6db74">&#39;org.apache.hadoop.hive.ql.io.parquet.MapredParquetOutputFormat&#39;</span>
 <span style="color:#66d9ef">LOCATION</span>
-  <span style="color:#e6db74">&#39;s3://aws-roda-hcls-datalake/thousandgenomes_dragen/var_partby_samples/&#39;</span>
+  <span style="color:#e6db74">&#39;s3://&lt;your_s3_path_here&gt;&#39;</span>
 ;
+
+<span style="color:#75715e">-- run this statement in Athena in order to load the partitions to the external table
+</span><span style="color:#75715e"></span>MSCK Repair <span style="color:#66d9ef">Table</span> athena_database_name.var_part_by_sample;
 
 </code></pre></div><p>For certain analysis, you may care mostly just variants, not the details of samples. To further optimize query performance for such analysis, we could nested sample data into variants using below query. <strong>Note you need to change the s3 bucket to one of your own</strong>.
 This can greatly reduce the record count and speedup analysis. In this data model, the record count is reduced from ~16.9 billion to ~160 million.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#66d9ef">create</span>  <span style="color:#66d9ef">table</span> var_nested
 <span style="color:#66d9ef">with</span> (
-  external_location <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;s3://genomics_datalake/var_nested/&#39;</span>,
+  external_location <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;s3://&lt;your_s3_path_here&gt;&#39;</span>,
   format <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;ORC&#39;</span>,
   partitioned_by <span style="color:#f92672">=</span> array[<span style="color:#e6db74">&#39;chrom&#39;</span>],
   bucketed_by <span style="color:#f92672">=</span> ARRAY[<span style="color:#e6db74">&#39;pos&#39;</span>], 
@@ -434,14 +438,37 @@ This can greatly reduce the record count and speedup analysis. In this data mode
 <span style="color:#66d9ef">select</span> variant_id, pos, <span style="color:#66d9ef">ref</span>, alt,  
 array_agg(<span style="color:#66d9ef">CAST</span>(<span style="color:#66d9ef">ROW</span>(sample_id, <span style="color:#e6db74">&#34;gt.alleles&#34;</span>) <span style="color:#66d9ef">AS</span> <span style="color:#66d9ef">ROW</span>(id VARCHAR, gts ARRAY(INTEGER)))) <span style="color:#66d9ef">as</span> samples,
 chrom
-<span style="color:#66d9ef">from</span> var_part_by_chrom 
-<span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> <span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4</span>,<span style="color:#ae81ff">6</span>
+<span style="color:#66d9ef">from</span> var_part_by_sample 
+<span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> <span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4</span>,<span style="color:#ae81ff">6</span>;
+
+<span style="color:#75715e">-- run this statement in Athena in order to load the partitions to the external table
+</span><span style="color:#75715e"></span>MSCK Repair <span style="color:#66d9ef">Table</span> athena_database_name.var_nested;
 
 </code></pre></div>
 <div class="notices note" ><p>Replace the value for external location S3 path to a location in your own account.</p>
 </div>
 
-
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL"><span style="color:#75715e">-- finding all samples that have heterozygous G to T variant on chromosome 1 between two positions 9033567 and 9142000
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">select</span> <span style="color:#66d9ef">DISTINCT</span>(sample.id) <span style="color:#66d9ef">from</span> (
+  <span style="color:#66d9ef">select</span> samples <span style="color:#66d9ef">from</span> var_nested 
+  <span style="color:#66d9ef">where</span> chrom<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;chr1&#39;</span> 
+  <span style="color:#66d9ef">and</span> pos <span style="color:#66d9ef">between</span> <span style="color:#ae81ff">9033567</span> <span style="color:#66d9ef">and</span> <span style="color:#ae81ff">9142000</span>
+  <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">ref</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;G&#39;</span>
+  <span style="color:#66d9ef">and</span> alt <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;T&#39;</span>) <span style="color:#66d9ef">as</span> f, 
+<span style="color:#66d9ef">unnest</span>(f.samples) <span style="color:#66d9ef">as</span> s(sample)
+<span style="color:#66d9ef">where</span> array_join(sample.gts, <span style="color:#e6db74">&#39;|&#39;</span>) <span style="color:#66d9ef">in</span> (<span style="color:#e6db74">&#39;0|1&#39;</span>) 
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> <span style="color:#ae81ff">1</span>;
+</code></pre></div><p>The same query on the var_part_by_sample table takes much longer as its flattened and scans much more data.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-SQL" data-lang="SQL">
+<span style="color:#66d9ef">select</span> <span style="color:#66d9ef">distinct</span>(sample_id) <span style="color:#66d9ef">from</span> var_part_by_sample
+<span style="color:#66d9ef">where</span> chrom<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;chr1&#39;</span> 
+  <span style="color:#66d9ef">and</span> pos <span style="color:#66d9ef">between</span> <span style="color:#ae81ff">9033567</span> <span style="color:#66d9ef">and</span> <span style="color:#ae81ff">9142000</span>
+  <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">ref</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;G&#39;</span>
+  <span style="color:#66d9ef">and</span> alt <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;T&#39;</span>
+  <span style="color:#66d9ef">and</span> array_join(<span style="color:#e6db74">&#34;gt.alleles&#34;</span>, <span style="color:#e6db74">&#39;|&#39;</span>) <span style="color:#66d9ef">in</span> (<span style="color:#e6db74">&#39;0|1&#39;</span>) 
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> <span style="color:#ae81ff">1</span>;
+</code></pre></div>
 
 <footer class=" footline" >
 	
@@ -563,6 +590,7 @@ chrom
             
                 
                     
+                    
                 
                 
 
@@ -579,6 +607,8 @@ chrom
             
                 
                     
+                        
+                        
                     
                 
                 
@@ -603,10 +633,10 @@ chrom
 	 
 	 
 		
-			<a class="nav nav-prev" href="../../en/analysis/thousandgenomesnew.html" title="Querying 1000 Genomes data"> <i class="fa fa-chevron-left"></i></a>
+			<a class="nav nav-prev" href="../../en/analysis/newsamples.html" title="Manage new samples"> <i class="fa fa-chevron-left"></i></a>
 		
 		
-			<a class="nav nav-next" href="../../en/basics.html" title="Architecture" style="margin-right: 0px;"><i class="fa fa-chevron-right"></i></a>
+			<a class="nav nav-next" href="../../en/analysis/thousandgenomesnew.html" title="Querying 1000 Genomes data" style="margin-right: 0px;"><i class="fa fa-chevron-right"></i></a>
 		
 	
     </div>
