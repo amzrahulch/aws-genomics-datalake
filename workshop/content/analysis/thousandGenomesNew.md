@@ -7,18 +7,17 @@ pre = "<b>3.1 </b>"
 
 We will use the parquet/ORC transformed variant data from the 3502 DRAGEN-reanalyzed 1000 Genomes dataset available in 3 different schemas at s3://aws-roda-hcls-datalake/thousandgenomes_dragen/:
 
-var_partby_samples - Dataset partitioned by sample ID
+1. var_partby_samples - Dataset partitioned by sample ID
 
-var_partby_chrom - Dataset partitioned by chromosome and bucketed by samples
+2. var_partby_chrom - Dataset partitioned by chromosome and bucketed by samples
 
-var_nested - Nested schema consisting of variant sites with sample IDs and genotypes that contain the variant
+3. var_nested - Nested schema consisting of variant sites with sample IDs and genotypes that contain the variant
 
 We use the transformed annotations from ClinVar that are available at https://registry.opendata.aws/clinvar/ and the transformed population allele frequency data from gnomAD at to demonstrate how to make queries that use the raw variant data with annotations.
 
-Please use the CloudFormation templates for 1000 Genomes DRAGEN, ClinVar and gnomAD available at https://github.com/aws-samples/data-lake-as-code/tree/roda to add these tables to your Glue Data Catalog.
+You can use the CloudFormation templates for 1000 Genomes DRAGEN, ClinVar and gnomAD available at https://github.com/aws-samples/data-lake-as-code/tree/roda to add these tables to your Glue Data Catalog.
 
-
-We use Clinvar as Annotation dataset. The dataset is publically available in RODA, you can create an external table in Athena (or use the cloudformation template from above) and start accessing it immediately.
+Alternatively, you can add ClinVar as an external table using the following query in Athena.
 
 ```SQL
 -- Clinvar dataset
@@ -69,7 +68,7 @@ For the end user who is a researcher performing analyses at a cohort level, the 
 
 ```SQL
 select count(DISTINCT(sample.id)) from (
-    select samples from var_nested 
+    select samples from thousandgenomes_dragen_dl_awsroda.var_nested 
     where chrom='chr17' 
     and pos between 43044295 and 43125364
   ) as f, 
@@ -90,7 +89,7 @@ select concat('chr', chromosome, ':', referenceallelevcf, ':', alternateallelevc
        , genesymbol as genename 
        , clinicalsignificance as clinvar_clnsig
        , split(phenotypeids, ',') as phenotypeids
-from variant_summary where assembly = 'GRCh38'
+from clinvar_summary_variants_dl-awsroda.variant_summary where assembly = 'GRCh38'
 and referenceallelevcf <> 'na' and alternateallelevcf <> 'na'
 ;
 
@@ -98,8 +97,8 @@ and referenceallelevcf <> 'na' and alternateallelevcf <> 'na'
 We can then use this “clinvar” view in subsequent queries, such as to further filter the original query by searching for only those samples that have variants of Uncertain Significance. 
 
 ```SQL
-select count(DISTINCT(sample.id (http://sample.id/))) from (
-  select samples from var_nested as v 
+select count(DISTINCT(sample.id) from (
+  select samples from thousandgenomes_dragen_dl_awsroda.var_nested as v 
   join clinvar a
   on v.variant_id = a.variant_id
   where *a**.clinvar_clnsig = 'Uncertain significance'* 
@@ -127,4 +126,7 @@ unnest(f.samples) as s(sample);
 
 ```
 
-This query returns a result set of 41 samples, which can then be investigated further. For more example queries and scenarios, we have created a [sample notebook](https://github.com/amzrahulch/genomicsDataLakePoC/blob/main/1000Genomes.ipynb) here you can try.
+This query returns a result set of 41 samples, which can then be investigated further. 
+
+For more example queries and scenarios, we have created a [sample notebook](https://github.com/aws-samples/aws-genomics-datalake/blob/main/1000Genomes.ipynb) that you can try.
+
